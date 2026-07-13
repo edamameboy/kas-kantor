@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { CloudUpload, ArrowRight, ArrowLeft } from 'lucide-react';
+import { CloudUpload, ArrowRight, ArrowLeft, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { saveTransaction } from '@/app/actions'; // Ganti dari supabase ke action
+import { saveTransaction } from '@/app/actions';
 
 export default function AddExpense() {
   const router = useRouter();
@@ -12,9 +12,12 @@ export default function AddExpense() {
   const [category, setCategory] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [note, setNote] = useState('');
-  const [isReimburse, setIsReimburse] = useState(false); // Tambah state reimburse
+  const [isReimburse, setIsReimburse] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  
+  // State baru untuk menyimpan gambar nota
+  const [receiptImage, setReceiptImage] = useState<string | null>(null);
 
   const fileToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -34,6 +37,10 @@ export default function AddExpense() {
     setIsScanning(true);
     try {
       const imageBase64 = await fileToBase64(file);
+      
+      // Simpan gambar ke state agar bisa dikirim ke database nanti
+      setReceiptImage(`data:${file.type};base64,${imageBase64}`);
+
       const response = await fetch('/api/scan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -45,10 +52,10 @@ export default function AddExpense() {
         setAmount(result.data.total_amount);
         setNote(result.data.description);
       } else {
-        alert("Gagal memproses nota.");
+        alert("Gagal memproses nota via AI. Gambar tetap dilampirkan.");
       }
     } catch (error) {
-      alert("Terjadi kesalahan sistem saat scan AI.");
+      alert("Terjadi kesalahan sistem saat scan AI. Gambar tetap dilampirkan.");
     } finally {
       setIsScanning(false);
     }
@@ -63,14 +70,14 @@ export default function AddExpense() {
     setIsSaving(true);
     
     try {
-      // Menggunakan Server Action dari Prisma
       const res = await saveTransaction({
         amount: parseFloat(amount),
-        type: "EXPENSE", // Sesuai dengan schema.prisma
+        type: "EXPENSE",
         category: category,
         date: date,
         note: note,
-        isReimburse: isReimburse
+        isReimburse: isReimburse,
+        receiptImage: receiptImage // <--- KINI GAMBAR IKUT DIKIRIM
       });
 
       if (res.success) {
@@ -97,7 +104,7 @@ export default function AddExpense() {
           <span className="text-2xl font-medium text-gray-400 mb-1">Rp</span>
           <input 
             type="number" value={amount} onChange={(e) => setAmount(e.target.value)}
-            placeholder="0" className="text-5xl text-blue-600 font-light w-full focus:outline-none placeholder-blue-600/50 bg-transparent tracking-tight"
+            placeholder="0" className="text-5xl text-blue-600 font-light w-full focus:outline-none placeholder-blue-600/50 bg-transparent tracking-tight text-center"
           />
         </div>
 
@@ -119,7 +126,7 @@ export default function AddExpense() {
 
           <div>
             <label className="block text-xs font-semibold text-gray-500 mb-2">Keterangan (Opsional)</label>
-            <input type="text" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Contoh: Beli tinta printer" className="w-full p-3 text-gray-600 bg-gray-50 border border-gray-200 focus:outline-none focus:border-blue-500 rounded-lg" />
+            <input type="text" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Contoh: Beli tinta printer" className="w-full p-3 bg-gray-50 border border-gray-200 focus:outline-none focus:border-blue-500 rounded-lg" />
           </div>
 
           <div className="flex justify-between items-center py-2 border-b border-gray-100">
@@ -127,20 +134,36 @@ export default function AddExpense() {
               <p className="text-sm font-medium text-gray-800">Reimburse</p>
               <p className="text-xs text-gray-500">Tandai jika butuh diganti oleh pusat</p>
             </div>
-            {/* Toggle Switch Aktif */}
             <div onClick={() => setIsReimburse(!isReimburse)} className={`w-12 h-6 rounded-full relative cursor-pointer transition-colors ${isReimburse ? 'bg-blue-600' : 'bg-gray-200'}`}>
               <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 shadow-sm transition-transform ${isReimburse ? 'left-6.5 translate-x-1' : 'left-0.5'}`}></div>
             </div>
           </div>
 
+          {/* Area Tampilan Preview atau Upload */}
           <div>
-            <label className="block text-xs font-semibold text-gray-500 mb-2">Unggah Nota (Opsional)</label>
-            <label className="block w-full cursor-pointer bg-blue-50/50 border-2 border-dashed border-blue-200 p-8 text-center hover:bg-blue-50 transition rounded-xl">
-              <input type="file" className="hidden" onChange={handleScanReceipt} accept="image/*" />
-              <CloudUpload className="w-8 h-8 text-blue-500 mx-auto mb-3" />
-              <p className="text-sm text-gray-800 font-medium">{isScanning ? 'AI Sedang Membaca...' : 'Tap untuk upload nota'}</p>
-              <p className="text-xs text-gray-500 mt-1">Data akan diisi otomatis</p>
-            </label>
+            <label className="block text-xs font-semibold text-gray-500 mb-2">Unggah Nota / Bukti Bayar</label>
+            
+            {receiptImage ? (
+              // Preview Gambar yang berhasil diunggah
+              <div className="relative rounded-xl border border-gray-200 overflow-hidden bg-gray-50 group p-2">
+                <img src={receiptImage} alt="Nota" className="w-full h-48 object-contain rounded-lg" />
+                <button 
+                  type="button" 
+                  onClick={() => setReceiptImage(null)} 
+                  className="absolute top-4 right-4 bg-red-100 text-red-600 p-2 rounded-full hover:bg-red-200 transition shadow-sm"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              // Form Upload Standar
+              <label className="block w-full cursor-pointer bg-blue-50/50 border-2 border-dashed border-blue-200 p-8 text-center hover:bg-blue-50 transition rounded-xl">
+                <input type="file" className="hidden" onChange={handleScanReceipt} accept="image/*" />
+                <CloudUpload className="w-8 h-8 text-blue-500 mx-auto mb-3" />
+                <p className="text-sm text-gray-800 font-medium">{isScanning ? 'AI Sedang Membaca...' : 'Tap untuk upload nota'}</p>
+                <p className="text-xs text-gray-500 mt-1">Data akan diisi otomatis</p>
+              </label>
+            )}
           </div>
         </form>
       </main>

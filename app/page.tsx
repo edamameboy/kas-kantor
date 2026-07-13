@@ -12,12 +12,13 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Memanggil server action untuk memuat data database
     getAllTransactions().then((data) => {
       setTransactions(data);
       
-      // Kalkulasi total saldo
-      const total = data.reduce((acc, curr) => {
+      // HANYA hitung saldo jika statusnya COMPLETED (normal) atau APPROVED (reimburse disetujui)
+      const validTransactions = data.filter(t => t.status === 'COMPLETED' || t.status === 'APPROVED');
+      
+      const total = validTransactions.reduce((acc, curr) => {
         return curr.type === 'INCOME' ? acc + curr.amount : acc - curr.amount;
       }, 0);
       setBalance(total);

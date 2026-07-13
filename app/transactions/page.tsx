@@ -18,13 +18,22 @@ export default async function TransactionsPage() {
           <p className="text-center text-gray-500 mt-10">Belum ada transaksi tercatat.</p>
         ) : (
           transactions.map((trx) => (
-            <div key={trx.id} className="flex justify-between items-center border-b border-gray-100 pb-4">
+            // Kita ubah div menjadi Link yang mengarah ke /transactions/[id]
+            <Link 
+              href={`/transactions/${trx.id}`} 
+              key={trx.id} 
+              className={`flex justify-between items-center border-b border-gray-100 pb-4 pt-2 px-2 -mx-2 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer ${trx.status === 'REJECTED' ? 'opacity-50' : ''}`}
+            >
               <div className="flex gap-3 items-center">
-                <div className="w-10 h-10 border border-gray-200 rounded-lg flex items-center justify-center bg-gray-50">
+                <div className="w-10 h-10 border border-gray-200 rounded-lg flex items-center justify-center bg-white shadow-sm">
                   {trx.type === 'INCOME' ? <Briefcase className="w-5 h-5 text-blue-600" /> : <Store className="w-5 h-5 text-gray-700" />}
                 </div>
                 <div>
-                  <p className="font-semibold text-gray-900 text-sm">{trx.category}</p>
+                  <p className="font-semibold text-gray-900 text-sm flex items-center gap-2">
+                    {trx.category}
+                    {trx.status === 'PENDING' && <span className="text-[9px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded font-bold">MENUNGGU ACC</span>}
+                    {trx.status === 'REJECTED' && <span className="text-[9px] bg-red-100 text-red-700 px-1.5 py-0.5 rounded font-bold">DITOLAK</span>}
+                  </p>
                   <p className="text-xs text-gray-500">
                     {trx.date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })} · 
                     <span className="font-medium text-gray-700 ml-1">{trx.user.name}</span>
@@ -33,16 +42,16 @@ export default async function TransactionsPage() {
                 </div>
               </div>
               <div className="text-right">
-                <p className={`font-bold ${trx.type === 'INCOME' ? 'text-blue-600' : 'text-gray-900'}`}>
+                <p className={`font-bold ${trx.type === 'INCOME' ? 'text-blue-600' : 'text-gray-900'} ${trx.status === 'REJECTED' ? 'line-through text-gray-400' : ''}`}>
                   {trx.type === 'INCOME' ? '+' : '-'}Rp {trx.amount.toLocaleString('id-ID')}
                 </p>
-                <span className={`text-[10px] font-bold px-1.5 py-0.5 mt-1 inline-block rounded border ${
-                  trx.type === 'INCOME' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-green-50 text-green-700 border-green-200'
+                <span className={`text-[9px] font-bold px-1.5 py-0.5 mt-1 inline-block rounded border ${
+                  trx.type === 'INCOME' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-gray-50 text-gray-700 border-gray-200'
                 }`}>
                   {trx.type}
                 </span>
               </div>
-            </div>
+            </Link>
           ))
         )}
       </main>
