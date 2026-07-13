@@ -7,7 +7,7 @@ dotenv.config({ path: '.env' });
 export default defineConfig({
   schema: 'prisma/schema.prisma',
   datasource: {
-    url: process.env.DATABASE_URL as string,
-    directUrl: process.env.DIRECT_URL as string,
+    // CLI Prisma mutlak membutuhkan jalur langsung untuk mengubah struktur tabel
+    url: process.env.DIRECT_URL as string,
   },
 });
