@@ -1,129 +1,95 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { 
-  Wallet, UserCircle, TrendingUp, Store, 
-  ArrowRight, Briefcase, Plus, 
-  Minus, FileText 
-} from 'lucide-react';
+import { Wallet, UserCircle, TrendingUp, Store, Briefcase, Plus, Minus, FileText } from 'lucide-react';
+import { getAllTransactions } from '@/app/actions';
 
 export default function Home() {
   const [isFabOpen, setIsFabOpen] = useState(false);
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [balance, setBalance] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Memanggil server action untuk memuat data database
+    getAllTransactions().then((data) => {
+      setTransactions(data);
+      
+      // Kalkulasi total saldo
+      const total = data.reduce((acc, curr) => {
+        return curr.type === 'INCOME' ? acc + curr.amount : acc - curr.amount;
+      }, 0);
+      setBalance(total);
+      setLoading(false);
+    });
+  }, []);
 
   return (
     <div className="min-h-screen bg-white w-full max-w-md mx-auto relative shadow-sm pb-20">
-      {/* Header */}
       <header className="flex justify-between items-center p-4 border-b border-gray-100">
         <div className="flex items-center gap-2">
           <Wallet className="w-6 h-6 text-gray-700" />
           <h1 className="text-lg font-semibold text-gray-800">KasKantor</h1>
         </div>
-        <UserCircle className="w-6 h-6 text-gray-600" />
+        <Link href="/profile">
+          <UserCircle className="w-7 h-7 text-gray-600 hover:text-blue-600 transition-colors" />
+        </Link>
       </header>
 
       <main className="p-4 space-y-6">
-        {/* Balance Card */}
+        {/* Balance Card Berbasis Database */}
         <div className="bg-gray-50 p-5 rounded-lg border border-gray-100">
           <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Total Saldo</p>
           <div className="flex items-baseline gap-2">
             <span className="text-xl text-gray-500 font-medium">Rp</span>
-            <h2 className="text-4xl font-bold text-gray-900">12.485.000</h2>
+            <h2 className="text-4xl font-bold text-gray-900">
+              {loading ? "..." : balance.toLocaleString('id-ID')}
+            </h2>
           </div>
           <p className="text-sm font-medium text-green-600 flex items-center gap-1 mt-2">
-            <TrendingUp className="w-4 h-4" /> +2.4% dari bulan lalu
+            <TrendingUp className="w-4 h-4" /> Terbaru & Terupdate
           </p>
         </div>
 
-        {/* Monthly Usage Chart */}
-        <div>
-          <div className="flex justify-between items-end mb-4">
-            <h3 className="text-xl font-bold text-gray-900">Grafik Bulanan</h3>
-            <div className="flex gap-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
-              <span className="flex items-center gap-1"><div className="w-2.5 h-2.5 bg-green-600 rounded-sm"></div> Masuk</span>
-              <span className="flex items-center gap-1"><div className="w-2.5 h-2.5 bg-gray-400 rounded-sm"></div> Keluar</span>
-            </div>
-          </div>
-          <div className="h-40 border border-gray-100 p-4 rounded-lg flex items-end justify-between px-6 pb-8 relative">
-            <div className="absolute bottom-6 left-0 right-0 border-t border-gray-200"></div>
-            {/* Bars */}
-            {[
-              { m: 'Jul', inc: 70, exp: 40 },
-              { m: 'Agu', inc: 60, exp: 65 },
-              { m: 'Sep', inc: 90, exp: 45 },
-              { m: 'Okt', inc: 85, exp: 55 }
-            ].map((data) => (
-              <div key={data.m} className="flex flex-col items-center z-10">
-                <div className="flex items-end gap-1.5 h-32">
-                  <div className="w-3.5 bg-green-600 rounded-t-sm" style={{ height: `${data.inc}%` }}></div>
-                  <div className="w-3.5 bg-gray-400 rounded-t-sm" style={{ height: `${data.exp}%` }}></div>
-                </div>
-                <span className={`text-xs mt-3 ${data.m === 'Okt' ? 'font-bold text-black' : 'text-gray-500'}`}>{data.m}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Transaction History */}
+        {/* Transaction History Terbaru (Limit 3) */}
         <div>
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-xl font-bold text-gray-900">Riwayat Transaksi</h3>
-            <button className="text-blue-600 font-semibold text-sm hover:underline">Lihat Semua</button>
+            <h3 className="text-xl font-bold text-gray-900">Transaksi Terakhir</h3>
+            <Link href="/transactions" className="text-blue-600 font-semibold text-sm hover:underline">Lihat Semua</Link>
           </div>
           <div className="space-y-4">
-            {/* Item 1 */}
-            <div className="flex justify-between items-center border-b border-gray-100 pb-4">
-              <div className="flex gap-3 items-center">
-                <div className="w-10 h-10 border border-gray-200 rounded-lg flex items-center justify-center bg-white">
-                  <Store className="w-5 h-5 text-gray-700" />
+            {loading ? (
+               <p className="text-sm text-gray-500 text-center py-4">Memuat data...</p>
+            ) : transactions.length === 0 ? (
+               <p className="text-sm text-gray-500 text-center py-4">Belum ada transaksi.</p>
+            ) : (
+              transactions.slice(0, 3).map((trx) => (
+                <div key={trx.id} className="flex justify-between items-center border-b border-gray-100 pb-4">
+                  <div className="flex gap-3 items-center">
+                    <div className="w-10 h-10 border border-gray-200 rounded-lg flex items-center justify-center bg-white">
+                      {trx.type === 'INCOME' ? <Briefcase className="w-5 h-5 text-blue-600" /> : <Store className="w-5 h-5 text-gray-700" />}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900 text-sm">{trx.category || 'Transaksi'}</p>
+                      <p className="text-xs text-gray-500">
+                        {new Date(trx.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })} · Oleh {trx.user?.name}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className={`font-bold ${trx.type === 'INCOME' ? 'text-blue-600' : 'text-gray-900'}`}>
+                      {trx.type === 'INCOME' ? '+' : '-'}Rp {trx.amount.toLocaleString('id-ID')}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-semibold text-gray-900 text-sm">Gramedia Subirman</p>
-                  <p className="text-xs text-gray-500">24 Okt · ATK Kantor</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="font-bold text-gray-900">-Rp 142.500</p>
-                <span className="text-[10px] font-bold bg-green-100 text-green-800 px-1.5 py-0.5 mt-1 inline-block rounded border border-green-200">CASH</span>
-              </div>
-            </div>
-            {/* Item 2 */}
-            <div className="flex justify-between items-center border-b border-gray-100 pb-4">
-              <div className="flex gap-3 items-center">
-                <div className="w-10 h-10 border border-gray-200 rounded-lg flex items-center justify-center bg-white">
-                  <ArrowRight className="w-5 h-5 text-gray-700" />
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-900 text-sm">Transfer ke Vendor A</p>
-                  <p className="text-xs text-gray-500">23 Okt · Jasa Servis AC</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="font-bold text-gray-900">-Rp 500.000</p>
-                <span className="text-[10px] font-bold bg-blue-50 text-blue-700 px-1.5 py-0.5 mt-1 inline-block rounded border border-blue-200">TRANSFER</span>
-              </div>
-            </div>
-            {/* Item 3 */}
-            <div className="flex justify-between items-center border-b border-gray-100 pb-4 bg-gray-50 -mx-4 px-4 py-2">
-              <div className="flex gap-3 items-center">
-                <div className="w-10 h-10 border border-gray-200 rounded-lg flex items-center justify-center bg-white">
-                  <Briefcase className="w-5 h-5 text-gray-700" />
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-900 text-sm">Topup Kas Pusat</p>
-                  <p className="text-xs text-gray-500">15 Okt · Dana Operasional</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="font-bold text-gray-900">+Rp 3.200.000</p>
-                <span className="text-[10px] font-bold bg-blue-50 text-blue-700 px-1.5 py-0.5 mt-1 inline-block rounded border border-blue-200">TRANSFER</span>
-              </div>
-            </div>
+              ))
+            )}
           </div>
         </div>
       </main>
 
-      {/* Floating Action Button & Menu - Responsif Centered */}
+      {/* Floating Action Button */}
       <div className="fixed bottom-20 w-full max-w-md left-1/2 -translate-x-1/2 flex justify-end px-4 pointer-events-none z-30">
         <div className="relative pointer-events-auto">
           {isFabOpen && (
@@ -145,16 +111,15 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Bottom Navigation - Responsif Centered */}
       <nav className="fixed bottom-0 w-full max-w-md bg-white border-t border-gray-200 flex justify-around z-20 left-1/2 -translate-x-1/2 pb-safe">
         <div className="flex flex-col items-center p-3 text-blue-600 w-full border-t-2 border-blue-600 bg-blue-50/30">
           <Wallet className="w-6 h-6" />
           <span className="text-[10px] font-bold mt-1">Beranda</span>
         </div>
-        <div className="flex flex-col items-center p-3 text-gray-400 w-full hover:text-gray-900 transition-colors cursor-pointer">
+        <Link href="/transactions" className="flex flex-col items-center p-3 text-gray-400 w-full hover:text-gray-900 transition-colors">
           <FileText className="w-6 h-6" />
           <span className="text-[10px] font-medium mt-1">Transaksi</span>
-        </div>
+        </Link>
       </nav>
     </div>
   );

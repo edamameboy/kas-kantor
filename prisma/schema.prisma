@@ -4,21 +4,27 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")
 }
 
 model User {
   id           String        @id @default(cuid())
+  phone        String        @unique  // Sekarang nomor HP yang menjadi unik
+  password     String
   name         String
-  role         String        @default("STAFF") // STAFF atau ADMIN
+  role         String        @default("STAFF")
+  bca          String?
+  seabank      String?
+  gopay        String?
+  dana         String?
   transactions Transaction[]
+  createdAt    DateTime      @default(now())
 }
 
 model Transaction {
   id          String   @id @default(cuid())
   amount      Float
-  type        String   // "INCOME" atau "EXPENSE"
-  category    String?  // Sumber dana atau Kategori pengeluaran
+  type        String
+  category    String?
   date        DateTime
   note        String?
   isReimburse Boolean  @default(false)
