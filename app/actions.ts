@@ -82,7 +82,9 @@ export async function updateProfile(data: any) {
 export async function getAllUsers() {
   const session = await getSession();
   if (session?.role !== "ADMIN") throw new Error("Unauthorized");
-  return await prisma.user.findMany({ orderBy: { createdAt: 'desc' } });
+  return await prisma.user.findMany({
+    orderBy: { name: 'asc' }
+  });
 }
 
 export async function updateUserRole(userId: string, newRole: string) {
