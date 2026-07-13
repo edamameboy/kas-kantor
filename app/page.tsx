@@ -15,12 +15,14 @@ export default function Home() {
     getAllTransactions().then((data) => {
       setTransactions(data);
       
-      // HANYA hitung saldo jika statusnya COMPLETED (normal) atau APPROVED (reimburse disetujui)
-      const validTransactions = data.filter(t => t.status === 'COMPLETED' || t.status === 'APPROVED');
+      // TAMBAHKAN (t: any) di sini
+      const validTransactions = data.filter((t: any) => t.status === 'COMPLETED' || t.status === 'APPROVED');
       
-      const total = validTransactions.reduce((acc, curr) => {
+      // TAMBAHKAN (acc: number, curr: any) di sini
+      const total = validTransactions.reduce((acc: number, curr: any) => {
         return curr.type === 'INCOME' ? acc + curr.amount : acc - curr.amount;
       }, 0);
+      
       setBalance(total);
       setLoading(false);
     });
