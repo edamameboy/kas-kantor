@@ -57,7 +57,7 @@ export default function Profile() {
         </div>
 
         <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm space-y-4">
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Data Rekening PRIBADI</p>
+          <p className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">Data Rekening PRIBADI</p>
           <input type="text" value={formData.bca} onChange={(e)=>setFormData({...formData, bca: e.target.value})} placeholder="No. Rek BCA" className="w-full p-3 text-gray-600 border rounded-lg outline-none" />
           <input type="text" value={formData.seabank} onChange={(e)=>setFormData({...formData, seabank: e.target.value})} placeholder="No. Rek Seabank" className="w-full p-3 text-gray-600 border rounded-lg outline-none" />
           <input type="text" value={formData.gopay} onChange={(e)=>setFormData({...formData, gopay: e.target.value})} placeholder="No. GoPay" className="w-full p-3 text-gray-600 border rounded-lg outline-none" />

@@ -126,7 +126,7 @@ export default function AddExpense() {
 
           <div>
             <label className="block text-xs font-semibold text-gray-500 mb-2">Keterangan (Opsional)</label>
-            <input type="text" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Contoh: Beli tinta printer" className="w-full p-3 bg-gray-50 border border-gray-200 focus:outline-none focus:border-blue-500 rounded-lg" />
+            <input type="text" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Contoh: Beli tinta printer" className="w-full p-3 text-gray-600 bg-gray-50 border border-gray-200 focus:outline-none focus:border-blue-500 rounded-lg" />
           </div>
 
           <div className="flex justify-between items-center py-2 border-b border-gray-100">

@@ -123,7 +123,7 @@ export default function AdminDashboard() {
                       
                       {/* Render Tiap Kolom Keuangan */}
                       {[
-                        { label: 'Nomor Rekening', value: user.bankAccount, icon: <Landmark className="w-3.5 h-3.5" />, id: 'bank' },
+                        { label: 'Nomor Rekening', value: user.bca, icon: <Landmark className="w-3.5 h-3.5" />, id: 'bca' },
                         { label: 'SeaBank', value: user.seabank, icon: <Landmark className="w-3.5 h-3.5 text-orange-500" />, id: 'seabank' },
                         { label: 'GoPay', value: user.gopay, icon: <Wallet className="w-3.5 h-3.5 text-blue-500" />, id: 'gopay' },
                         { label: 'DANA', value: user.dana, icon: <Wallet className="w-3.5 h-3.5 text-sky-500" />, id: 'dana' }

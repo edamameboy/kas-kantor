@@ -203,7 +203,7 @@ export default function TransactionDetail({ params }: { params: Promise<{ id: st
           </div>
 
           <div className="p-4 flex items-start gap-3">
-            <FileText className="w-5 h-5 text-gray-400 mt-0.5" />
+            <FileText className="w-5 h-5 text-gray-600 mt-0.5" />
             <div className="w-full">
               <p className="text-xs text-gray-500 font-medium">Catatan / Keterangan</p>
               <p className="font-medium text-gray-800 mt-1 bg-gray-50 p-3 rounded-lg text-sm border border-gray-100 min-w-[200px]">
