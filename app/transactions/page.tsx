@@ -17,7 +17,7 @@ export default async function TransactionsPage() {
         {transactions.length === 0 ? (
           <p className="text-center text-gray-500 mt-10">Belum ada transaksi tercatat.</p>
         ) : (
-          transactions.map((trx) => (
+          transactions.map((trx: any) => (
             // Kita ubah div menjadi Link yang mengarah ke /transactions/[id]
             <Link 
               href={`/transactions/${trx.id}`} 

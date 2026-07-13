@@ -1,9 +1,13 @@
-import { defineConfig, env } from 'prisma/config';
+import { defineConfig } from 'prisma/config';
+import dotenv from 'dotenv';
+
+// Paksa sistem untuk membaca file .env
+dotenv.config({ path: '.env' });
 
 export default defineConfig({
   schema: 'prisma/schema.prisma',
   datasource: {
-    // Kita gunakan fungsi env() bawaan Prisma, bukan process.env
-    url: env('DIRECT_URL'),
+    url: process.env.DATABASE_URL as string,
+    directUrl: process.env.DIRECT_URL as string,
   },
 });
