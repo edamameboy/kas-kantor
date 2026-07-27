@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { getAllTransactions } from '@/app/actions';
-import { Wallet, FileText, ArrowRight, Store, Briefcase } from 'lucide-react';
+import { Wallet, FileText, Store, Briefcase } from 'lucide-react';
 
 export default async function TransactionsPage() {
   // Mengambil data dari database secara real-time

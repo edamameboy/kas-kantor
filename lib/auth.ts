@@ -16,7 +16,7 @@ export async function decrypt(input: string): Promise<any> {
   try {
     const { payload } = await jwtVerify(input, key, { algorithms: ['HS256'] });
     return payload;
-  } catch (error) {
+  } catch {
     return null;
   }
 }

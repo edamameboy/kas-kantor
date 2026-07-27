@@ -61,7 +61,7 @@ export default function TransactionDetail({ params }: { params: Promise<{ id: st
       setTrx({ ...trx, status: 'COMPLETED', transferProof: base64 });
       setShowProof(true); // Langsung buka dropdown bukti setelah berhasil upload
       alert('Bukti transfer berhasil diunggah. Transaksi Selesai!');
-    } catch (error) {
+    } catch {
       alert('Gagal mengunggah bukti transfer.');
     } finally {
       setIsUploading(false);

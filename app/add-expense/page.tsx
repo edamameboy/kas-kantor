@@ -54,7 +54,7 @@ export default function AddExpense() {
       } else {
         alert("Gagal memproses nota via AI. Gambar tetap dilampirkan.");
       }
-    } catch (error) {
+    } catch {
       alert("Terjadi kesalahan sistem saat scan AI. Gambar tetap dilampirkan.");
     } finally {
       setIsScanning(false);
@@ -83,7 +83,7 @@ export default function AddExpense() {
       if (res.success) {
         router.push('/transactions');
       }
-    } catch (error) {
+    } catch {
       alert('Gagal menyimpan transaksi ke database.');
       setIsSaving(false);
     }

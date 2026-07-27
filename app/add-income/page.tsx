@@ -34,7 +34,7 @@ export default function AddIncome() {
       if (res.success) {
         router.push('/transactions');
       }
-    } catch (error) {
+    } catch {
       alert('Gagal menyimpan pemasukan ke database.');
       setIsSaving(false);
     }
