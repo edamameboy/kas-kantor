@@ -5,8 +5,6 @@ import { revalidatePath } from 'next/cache';
 import bcrypt from 'bcryptjs';
 import { encrypt, getSession } from '@/lib/auth';
 import { cookies } from 'next/headers';
-import fs from 'fs';
-import path from 'path';
 
 // ==================== AUTH & USER ====================
 export async function registerUser(data: any) {
@@ -94,37 +92,6 @@ export async function updateUserRole(userId: string, newRole: string) {
   revalidatePath('/admin');
 }
 
-// ==================== FUNGSI BARU: SIMPAN GAMBAR LOKAL ====================
-async function saveImageLocal(base64String: string, type: 'receipt' | 'proof') {
-  // Jika string bukan base64 (sudah berupa URL pendek), kembalikan saja
-  if (!base64String.startsWith('data:image')) return base64String;
-
-  // Pisahkan header base64 dan datanya
-  const matches = base64String.match(/^data:image\/([A-Za-z-+\/]+);base64,(.+)$/);
-  if (!matches || matches.length !== 3) throw new Error('Invalid base64 format');
-
-  const extension = matches[1] === 'jpeg' ? 'jpg' : matches[1];
-  const buffer = Buffer.from(matches[2], 'base64');
-  
-  // Buat nama file unik
-  const fileName = `${type}-${Date.now()}-${Math.round(Math.random() * 1000)}.${extension}`;
-  
-  // Arahkan ke folder public/uploads di project Next.js Anda
-  const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-  
-  // Cek apakah folder uploads sudah ada, jika belum otomatis buatkan
-  if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-  }
-
-  // Tulis file fisiknya ke folder tersebut
-  const filePath = path.join(uploadDir, fileName);
-  await fs.promises.writeFile(filePath, buffer);
-  
-  // Kembalikan URL pendeknya untuk disimpan ke Database
-  return `/uploads/${fileName}`; 
-}
-
 // ==================== TRANSACTIONS ====================
 export async function saveTransaction(data: any) {
   const session = await getSession();
@@ -132,11 +99,8 @@ export async function saveTransaction(data: any) {
 
   const status = data.isReimburse ? "PENDING" : "COMPLETED";
 
-  // PROSES GAMBAR NOTA SEBELUM SIMPAN KE DATABASE
-  let savedReceiptPath = null;
-  if (data.receiptImage) {
-    savedReceiptPath = await saveImageLocal(data.receiptImage, 'receipt');
-  }
+  // SIMPAN BASE64 LANGSUNG KARENA VERCEL TIDAK MENDUKUNG PENULISAN FILE LOKAL
+  let savedReceiptPath = data.receiptImage || null;
 
   await prisma.transaction.create({
     data: {
@@ -144,7 +108,7 @@ export async function saveTransaction(data: any) {
       date: new Date(data.date), note: data.note, isReimburse: data.isReimburse || false,
       status: status,
       userId: session.id as string,
-      receiptImage: savedReceiptPath, // <--- KINI HANYA MENYIMPAN TEKS PENDEK
+      receiptImage: savedReceiptPath, 
     }
   });
   revalidatePath('/'); revalidatePath('/transactions'); revalidatePath('/admin');
@@ -154,7 +118,20 @@ export async function saveTransaction(data: any) {
 export async function getAllTransactions() {
   return await prisma.transaction.findMany({
     orderBy: { date: 'desc' },
-    include: { user: { select: { name: true, phone: true } } }
+    select: {
+      id: true,
+      amount: true,
+      type: true,
+      category: true,
+      date: true,
+      note: true,
+      isReimburse: true,
+      status: true,
+      userId: true,
+      createdAt: true,
+      user: { select: { name: true, phone: true } }
+      // Kita TIDAK mengambil receiptImage & transferProof agar halaman list tidak berat!
+    }
   });
 }
 
@@ -182,14 +159,14 @@ export async function submitTransferProof(transactionId: string, imageBase64: st
   const session = await getSession();
   if (session?.role !== "ADMIN") throw new Error("Unauthorized");
 
-  // PROSES GAMBAR BUKTI TRANSFER SEBELUM SIMPAN KE DB
-  const savedProofPath = await saveImageLocal(imageBase64, 'proof');
+  // SIMPAN BASE64 LANGSUNG KARENA VERCEL TIDAK MENDUKUNG PENULISAN FILE LOKAL
+  const savedProofPath = imageBase64;
 
   await prisma.transaction.update({
     where: { id: transactionId },
     data: { 
       status: 'COMPLETED',
-      transferProof: savedProofPath // <--- KINI HANYA MENYIMPAN TEKS PENDEK
+      transferProof: savedProofPath
     }
   });
   
