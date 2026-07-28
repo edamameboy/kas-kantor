@@ -35,7 +35,7 @@ export default async function TransactionsPage() {
                     {trx.status === 'REJECTED' && <span className="text-[9px] bg-red-100 text-red-700 px-1.5 py-0.5 rounded font-bold">DITOLAK</span>}
                   </p>
                   <p className="text-xs text-gray-500">
-                    {trx.date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })} · 
+                    {new Date(trx.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })} · 
                     <span className="font-medium text-gray-700 ml-1">{trx.user.name}</span>
                   </p>
                   {trx.note && <p className="text-[10px] text-gray-400 mt-0.5 truncate max-w-[150px]">{trx.note}</p>}
