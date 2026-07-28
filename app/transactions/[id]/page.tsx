@@ -39,12 +39,34 @@ export default function TransactionDetail({ params }: { params: Promise<{ id: st
     setTrx({ ...trx, status: newStatus }); 
   };
 
-  const fileToBase64 = (file: File): Promise<string> => {
+  const compressImage = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.readAsDataURL(file);
-      reader.onload = () => {
-        if (typeof reader.result === 'string') resolve(reader.result);
+      reader.onload = (event) => {
+        const img = new window.Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 800;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > MAX_WIDTH) {
+            height = Math.round((height * MAX_WIDTH) / width);
+            width = MAX_WIDTH;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+          
+          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+          resolve(compressedBase64);
+        };
+        img.onerror = error => reject(error);
       };
       reader.onerror = error => reject(error);
     });
@@ -56,7 +78,7 @@ export default function TransactionDetail({ params }: { params: Promise<{ id: st
 
     setIsUploading(true);
     try {
-      const base64 = await fileToBase64(file);
+      const base64 = await compressImage(file);
       await submitTransferProof(trx.id, base64);
       setTrx({ ...trx, status: 'COMPLETED', transferProof: base64 });
       setShowProof(true); // Langsung buka dropdown bukti setelah berhasil upload

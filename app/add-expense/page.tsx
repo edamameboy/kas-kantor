@@ -19,12 +19,35 @@ export default function AddExpense() {
   // State baru untuk menyimpan gambar nota
   const [receiptImage, setReceiptImage] = useState<string | null>(null);
 
-  const fileToBase64 = (file: File): Promise<string> => {
+  const compressImage = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.readAsDataURL(file);
-      reader.onload = () => {
-        if (typeof reader.result === 'string') resolve(reader.result.split(',')[1]);
+      reader.onload = (event) => {
+        const img = new window.Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 800;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > MAX_WIDTH) {
+            height = Math.round((height * MAX_WIDTH) / width);
+            width = MAX_WIDTH;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+          
+          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+          // Kita butuh base64 tanpa prefix 'data:image/jpeg;base64,' untuk API scan, jadi kita hilangkan prefixnya
+          resolve(compressedBase64.split(',')[1]);
+        };
+        img.onerror = error => reject(error);
       };
       reader.onerror = error => reject(error);
     });
@@ -36,10 +59,10 @@ export default function AddExpense() {
 
     setIsScanning(true);
     try {
-      const imageBase64 = await fileToBase64(file);
+      const imageBase64 = await compressImage(file);
       
       // Simpan gambar ke state agar bisa dikirim ke database nanti
-      setReceiptImage(`data:${file.type};base64,${imageBase64}`);
+      setReceiptImage(`data:image/jpeg;base64,${imageBase64}`);
 
       const response = await fetch('/api/scan', {
         method: 'POST',

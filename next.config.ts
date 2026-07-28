@@ -10,11 +10,10 @@ const withSerwist = withSerwistInit({
 const nextConfig = {
   // Biarkan kosong atau isi dengan konfigurasi Next.js Anda yang lain
   turbopack: {},
-  experimental: {
-    serverActions: {
-      bodySizeLimit: 10485760, // 10MB in bytes
-    },
+  serverActions: {
+    bodySizeLimit: '10mb', // 10MB in bytes
   },
+  experimental: {},
 };
 
 export default process.env.NODE_ENV === "development" ? nextConfig : withSerwist(nextConfig);
